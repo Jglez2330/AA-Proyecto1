@@ -158,23 +158,24 @@ def jpeg_decompression(compressed_image, n_l):
 
   return decompressed_image
 
-# Carga la imagen desde manera local o Google Drive
-uploaded = files.upload()
+# Método que carga la imagen de manera local o Google Drive
+def upload_image():
+  uploaded = files.upload()
 
-# Carga la imagen y la muestra
-for filename in uploaded.keys():
-    print('Imagen cargada:', filename)
-    display(Image(filename=filename))
+  # Carga la imagen y la muestra
+  for filename in uploaded.keys():
+      print('Imagen cargada:', filename)
+      display(Image(filename=filename))
 
-# Ruta a la imagen cargada (asegúrate de que coincida con el nombre de archivo correcto)
-image_path = list(uploaded.keys())[0]
+  # Ruta a la imagen cargada (asegúrate de que coincida con el nombre de archivo correcto)
+  image_path = list(uploaded.keys())[0]
 
-# Carga la imagen usando cv2
-img = cv.imread(image_path, 0)
+  # Carga la imagen usando cv2
+  img = cv.imread(image_path, 0)
 
-# Verifica si la carga de la imagen fue exitosa
-if img is not None:
-    print('Imagen cargada con éxito.')
-    # Puedes realizar operaciones en la imagen aquí
-else:
-    print('No se pudo cargar la imagen.')
+  # Verifica si la carga de la imagen fue exitosa
+  if img is not None:
+      print('Imagen cargada con éxito.')
+      # Puedes realizar operaciones en la imagen aquí
+  else:
+      print('No se pudo cargar la imagen.')
