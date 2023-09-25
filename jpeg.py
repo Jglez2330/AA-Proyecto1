@@ -1,104 +1,199 @@
 # Se importan las librerías
 import numpy as np  # Para las operaciones matemática
 import cv2 as cv    # Para la exportación de imagenes
-
+import scipy
 # Para cargar una imagen
 from IPython.display import Image
 from google.colab import files
+from google.colab.patches import cv2_imshow
+
+# Método que carga la imagen de manera local o Google Drive
+def upload_image():
+  uploaded = files.upload()
+
+  # Carga la imagen y la muestra
+  for filename in uploaded.keys():
+      print('\n Imagen original cargada:', filename)
+      display(Image(filename=filename))
+
+  # Ruta a la imagen cargada (asegúrate de que coincida con el nombre de archivo correcto)
+  image_path = list(uploaded.keys())[0]
+
+  # Carga la imagen usando cv2
+  img = cv.imread(image_path, 0)
+
+  # Verifica si la carga de la imagen fue exitosa
+  if img is not None:
+      print('Imagen cargada con éxito.')
+      return img
+      # Puedes realizar operaciones en la imagen aquí
+  else:
+      print('No se pudo cargar la imagen.')
+
+# Matrices a utilizar
+Q50 = np.array(
+    [
+        [16, 11, 10, 16, 24, 40, 51, 61],
+        [12, 12, 14, 19, 26, 58, 60, 55],
+        [14, 13, 16, 24, 40, 57, 59, 56],
+        [14, 17, 22, 29, 51, 87, 80, 62],
+        [18, 22, 37, 56, 68, 109, 103, 77],
+        [24, 35, 55, 64, 81, 104, 113, 92],
+        [49, 64, 78, 87, 103, 121, 120, 101],
+        [72, 92, 95, 98, 112, 100, 103, 99]
+    ]
+)
+
+Q10 = np.array(
+  [
+    [80, 55, 50, 80, 120, 200, 255, 255],
+    [60, 60, 70, 95, 130, 255, 255, 255],
+    [70, 65, 80, 120, 200, 255, 255, 255],
+    [70, 85, 110, 145, 255, 255, 255, 255],
+    [90, 110, 185, 255, 255, 255, 255, 255],
+    [120, 175, 255, 255, 255, 255, 255, 255],
+    [245, 255, 255, 255, 255, 255, 255, 255],
+    [255, 255, 255, 255, 255, 255, 255, 255]
+  ]
+)
+
+FAEQ10 = np.array(
+  [
+    [32, 32, 59, 160, 117, 255, 255, 255],
+    [32, 32, 112, 178, 139, 255, 255, 255],
+    [32, 32, 147, 186, 255, 255, 255, 255],
+    [245, 245, 32, 225, 255, 255, 255, 255],
+    [32, 109, 124, 255, 255, 255, 255, 255],
+    [245, 115, 255, 255, 255, 255, 255, 255],
+    [255, 255, 255, 255, 255, 255, 255, 255],
+    [255, 255, 255, 255, 255, 255, 255, 255]
+  ]
+)
+
+Q80 = np.array(
+  [
+    [6, 4, 4, 6, 10, 16, 20, 24],
+    [5, 5, 6, 8, 10, 23, 24, 22],
+    [6, 5, 6, 10, 16, 23, 28, 22],
+    [6, 7, 9, 12, 20, 35, 32, 25],
+    [7, 9, 15, 22, 27, 44, 41, 31],
+    [10, 14, 22, 26, 32, 42, 45, 37],
+    [20, 26, 31, 35, 41, 48, 48, 40],
+    [29, 37, 38, 39, 45, 40, 41, 40]
+  ]
+)
+
+Haddamark = np.array(
+    [
+        [16, 24, 16, 17, 16, 21, 16, 18],
+        [24, 115, 36, 47, 25, 88, 29, 65],
+        [16, 36, 21, 24, 16, 31, 18, 27],
+        [17, 47, 24, 30, 17, 41, 20, 35],
+        [16, 25, 16, 17, 16, 22, 16, 19],
+        [21, 88, 31, 41, 22, 70, 25, 54],
+        [16, 29, 18, 20, 16, 25, 17, 22],
+        [18, 65, 27, 35, 19, 54, 22, 44]
+    ]
+)
+
+Ultrasound = np.array(
+    [
+        [8, 16, 24, 40, 81, 97, 72, 145],
+        [8, 16, 24, 40, 89, 162, 194, 283],
+        [16, 16, 24, 40, 89, 170, 194, 283],
+        [16, 24, 24, 40, 89, 170, 194, 291],
+        [24, 24, 32, 48, 89, 162, 194, 275],
+        [24, 32, 32, 48, 105, 178, 202, 299],
+        [48, 48, 48, 72, 121, 194, 210, 291],
+        [81, 81, 81, 89, 145, 202, 210, 291]
+    ]
+)
+
+psycho_visual_threshold = np.array(
+    [
+        [16, 14, 13, 15, 19, 28, 37, 55],
+        [14, 13, 15, 19, 28, 37, 55, 64],
+        [13, 15, 19, 28, 37, 55, 64, 83],
+        [15, 19, 28, 37, 55, 64, 83, 103],
+        [19, 28, 37, 55, 64, 83, 103, 117],
+        [28, 37, 55, 64, 83, 103, 117, 117],
+        [37, 55, 64, 83, 103, 117, 117, 111],
+        [55, 64, 83, 103, 117, 117, 111, 90]
+    ]
+)
+
+matrix = {
+    "Q50": Q50,
+    "Q10": Q10,
+    "FAEQ10": FAEQ10,
+    "Q80": Q80,
+    "Haddamark": Haddamark,
+    "Ultrasound": Ultrasound,
+    "psycho_visual_threshold": psycho_visual_threshold
+}
 
 def quantization(n):
   # This function gives the quantization, 8x8 matrix for a given n
-  # n -> Level of quantization, it is an integer between 0 and 100
-  Q50 = np.array([[16, 11, 10, 16, 24, 40, 51, 61],
-                    [12, 12, 14, 19, 26, 58, 60, 55],
-                    [14, 13, 16, 24, 40, 57, 59, 56],
-                    [14, 17, 22, 29, 51, 87, 80, 62],
-                    [18, 22, 37, 56, 68, 109, 103, 77],
-                    [24, 35, 55, 64, 81, 104, 113, 92],
-                    [49, 64, 78, 87, 103, 121, 120, 101],
-                    [72, 92, 95, 98, 112, 100, 103, 99]])
+  # n -> Level of quantization, it is always 50 for this experiment
 
-  if n == 50:
-    Q = Q50
-  elif n == 0:
-    Q = np.ones((8, 8), dtype=int)
-  elif 50 < n < 100:
-    Q = np.round(((100 - n) / 50) * Q50).astype(int)
-  elif 0 < n < 50:
-    Q = np.round((50 / n) * Q50).astype(int)
-  else:
-    Q = None
-    print("n must be between 0 and 100")
+  return matrix[n]
 
-  return Q
+def zigzag(matrix):
+  rows, cols = matrix.shape
+  result = []
 
-def zigzag(A):
-  # This function encodes the matrix A into a vector using the zigzag method
-  # A -> matrix
-  m, _ = A.shape
-  n = int((2 * m - 1) / 2)
-  diags = np.flip(np.arange(-n, n + 1))
-  s = np.sum(np.abs(A))
-  x = []
+  for i in range(rows + cols - 1):
+    if i % 2 == 0:  # Move upwards
+      if i < rows:
+        row, col = i, 0
+      else:
+        row, col = rows - 1, i - rows + 1
 
-  for d in diags:
-    c = m - abs(d)
-    if d >= 0:
-      i, j = c, 0
-    if d < 0:
-      i, j = m, abs(d)
+      while row >= 0 and col < cols:
+        result.append(matrix[row, col])
+        row -= 1
+        col += 1
 
-    diag = []
-    for _ in range(c):
-      diag.append(A[i, j])
-      i -= 1
-      j += 1
+    else:  # Move downwards
+      if i < cols:
+        row, col = 0, i
+      else:
+        row, col = i - cols + 1, cols - 1
 
-    if abs(d) % 2 == 0:
-      x += diag[::-1]
-    else:
-      x += diag
+      while row < rows and col >= 0:
+        result.append(matrix[row, col])
+        row += 1
+        col -= 1
 
-    s1 = np.sum(np.abs(x))
-    if s1 == s:
-      break
+  return np.array(result)
 
-  return np.array(x)
+def inverse_zigzag(vector, rows, cols):
+    matrix = np.zeros((rows, cols), dtype=vector.dtype)
+    index = 0
 
-def inverse_zigzag(x, m):
-  # This function encodes a vector x into a matrix using the inverse zigzag method
-  # x -> zigzag encoded vector
-  # m -> size of the final matrix (mxm)
-  n = int((2 * m - 1) / 2)
-  diags = np.flip(np.arange(-n, n + 1))
-  s = np.sum(np.abs(x))
-  A = np.zeros((m, m))
-  l = 0
+    for i in range(rows + cols - 1):
+        if i % 2 == 0:  # Move upwards
+            if i < rows:
+                row, col = i, 0
+            else:
+                row, col = rows - 1, i - rows + 1
+            while row >= 0 and col < cols:
+                matrix[row, col] = vector[index]
+                index += 1
+                row -= 1
+                col += 1
+        else:  # Move downwards
+            if i < cols:
+                row, col = 0, i
+            else:
+                row, col = i - cols + 1, cols - 1
+            while row < rows and col >= 0:
+                matrix[row, col] = vector[index]
+                index += 1
+                row += 1
+                col -= 1
 
-  for d in diags:
-    c = m - abs(d)
-    if d >= 0:
-      i, j = c, 0
-    if d < 0:
-      i, j = m, abs(d)
-
-    elements = x[l:l + c]
-
-    if abs(d) % 2 == 0:
-      elements = np.flip(elements)
-
-    for e in range(c):
-      A[i, j] = elements[e]
-      i -= 1
-      j += 1
-
-      l += c
-
-      s1 = np.sum(np.abs(A))
-      if s1 == s:
-        break
-
-  return A
+    return matrix
 
 def jpeg_compression(image, n_l):
   # This function compresses an image into a cell using the JPEG method
@@ -116,15 +211,15 @@ def jpeg_compression(image, n_l):
     i_start = i_end - 8
 
     for j in range(n):
-      j_end = 8 * (j + 1)
+      j_end = 8 * (j  + 1)
       j_start = j_end - 8
 
       kernel = image[i_start:i_end, j_start:j_end]
       reduced_image = kernel - 128
-      dct_image = np.fft.dctn(reduced_image, type=2, norm='ortho')
-      Q = quantization(n_l)
-      quantized_image = np.round(dct_image / Q).astype(int)
-      vect = zigzag(quantized_image)
+      dct_image = scipy.fft.dctn(reduced_image, type=2, norm='ortho') # Discrete Cosine Transform
+      Q = n_l                                                         # Quantization table
+      quantized_image = np.round(dct_image / Q).astype(int)           # Quantization
+      vect = zigzag(quantized_image)                                  # ZigZag Path
 
       compressed_image[i, j] = vect
 
@@ -148,34 +243,44 @@ def jpeg_decompression(compressed_image, n_l):
       j_start = j_end - 8
 
       kernel = compressed_image[i, j]
-      i_zigzag = inverse_zigzag(kernel, 8)
-      Q = quantization(n_l)
+      i_zigzag = inverse_zigzag(kernel, 8, 8)
+      Q = n_l
       kernel_image = Q * i_zigzag
 
-      rounded_kernel = np.round(np.fft.idctn(kernel_image, type=2, norm='ortho'))
+      rounded_kernel = np.round(scipy.fft.idctn(kernel_image, type=2, norm='ortho')) #Inverse discrete cosine transform
       rounded_kernel = rounded_kernel + 128
       decompressed_image[i_start:i_end, j_start:j_end] = rounded_kernel
 
   return decompressed_image
 
-# Método que carga la imagen de manera local o Google Drive
-def upload_image():
-  uploaded = files.upload()
+# Función para determinar la métrica de error
+# Se utilizo Error Cuadrático Medio (MSE - Mean Squared Error)
+# El MSE calcula el promedio de los cuadrados de las diferencias entre los valores de píxeles de la imagen original
+# y la imagen comprimida y descomprimida. Cuanto menor sea el MSE, mejor será la calidad de la imagen.
+def calculate_mse(image1, image2):
+    # Redimensionar una de las imágenes para que coincida con el tamaño de la otra
+    if image1.shape != image2.shape:
+        image2 = cv.resize(image2, (image1.shape[1], image1.shape[0]))
 
-  # Carga la imagen y la muestra
-  for filename in uploaded.keys():
-      print('Imagen cargada:', filename)
-      display(Image(filename=filename))
+    return np.mean((image1 - image2) ** 2)
 
-  # Ruta a la imagen cargada (asegúrate de que coincida con el nombre de archivo correcto)
-  image_path = list(uploaded.keys())[0]
-
-  # Carga la imagen usando cv2
-  img = cv.imread(image_path, 0)
-
-  # Verifica si la carga de la imagen fue exitosa
-  if img is not None:
-      print('Imagen cargada con éxito.')
-      # Puedes realizar operaciones en la imagen aquí
-  else:
-      print('No se pudo cargar la imagen.')
+# Función para ejecutar la imagen por todas las matrices
+def image_x_matrix(imagen):
+  # Iterar a través de cada matriz de cuantización en el diccionario 'matrix'
+  for key, quantization_matrix in matrix.items():
+    # Realizar la compresión
+    compressed_img = jpeg_compression(imagen, quantization_matrix)
+    
+    # Realizar la descompresión
+    decompressed_img = jpeg_decompression(compressed_img, quantization_matrix)
+    
+    # Asegurarse de que las imágenes estén en el rango adecuado (0-255)
+    imagen = np.uint8(imagen)
+    decompressed_img = np.uint8(decompressed_img)
+    
+    # Calcular el MSE entre la imagen original y la imagen descomprimida
+    mse = calculate_mse(imagen, decompressed_img)
+    
+    print(f"\nMatriz {key}")
+    print(f"Error Cuadrático Medio (MSE): {mse:.2f} %")
+    cv2_imshow(decompressed_img)
